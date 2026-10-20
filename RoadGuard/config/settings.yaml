@@ -1,0 +1,47 @@
+app:
+  name: "RoadGuard"
+  version: "0.1.0"
+  environment: "development"
+  debug: true
+
+vision:
+  model_path: "models/yolov8n.pt"
+  confidence_threshold: 0.50
+  iou_threshold: 0.45
+  device: "cuda:0" # or "cpu"
+  input_resolution: [1280, 720]
+  target_fps: 30
+
+opencv_pipeline:
+  optical_flow:
+    enabled: true
+    algorithm: "farneback"
+  lane_detection:
+    enabled: true
+    canny_low: 50
+    canny_high: 150
+  anomaly_detection:
+    speed_threshold_kmh: 80
+    stopped_vehicle_seconds: 10
+
+agent:
+  provider: "openai"
+  model: "gpt-4o"
+  temperature: 0.2
+  alert_threshold: "medium" # low, medium, high, critical
+  auto_generate_reports: true
+
+backend:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 1
+  cors_origins:
+    - "http://localhost:3000"
+    - "http://localhost:8501"
+
+storage:
+  raw_data_dir: "data/raw"
+  processed_data_dir: "data/processed"
+  sample_data_dir: "data/sample"
+  evidence_dir: "outputs/evidence"
+  reports_dir: "outputs/reports"
