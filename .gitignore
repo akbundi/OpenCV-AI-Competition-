@@ -1,4 +1,4 @@
 India/
 roadguard_yolo/images/
-roadguard_yolo/labels/*.cache
+roadguard_yolo/labels/
 runs/
