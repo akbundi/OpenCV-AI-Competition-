@@ -1,0 +1,12 @@
+RoadGuard India RDD2022 EDA Summary
+===================================
+Train images: 7706
+Train XML annotations: 7706
+Test images: 1959
+Images with damage: 3785
+Images without damage: 3921
+Total bounding boxes: 8203
+Invalid bounding boxes: 0
+Duplicate annotations: 0
+Image/XML mismatches: 0
+Image size: 720x720

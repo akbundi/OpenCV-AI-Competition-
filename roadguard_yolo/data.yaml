@@ -1,0 +1,15 @@
+path: .
+train: images/train
+val: images/val
+
+names:
+  0: D00
+  1: D01
+  2: D0w0
+  3: D10
+  4: D11
+  5: D20
+  6: D40
+  7: D43
+  8: D44
+  9: D50
