@@ -1,0 +1,27 @@
+# Add these rules to your existing .gitignore. Do not replace other existing rules.
+.venv/
+__pycache__/
+.pytest_cache/
+.env
+.env.*
+!.env.example
+.aws/
+*.pem
+*.key
+RDD2022/
+data/
+output/
+roadguard_dataset.zip
+roadguard_global.zip
+roadguard_evidence_private.zip
+*.zip
+runs/
+wandb/
+*.pt
+# Keep the small global ONNX model for reproducible inference, if license allows.
+# Do NOT add a blanket `models/` exclusion.
+
+models/roadguard_yolov8n.onnx
+roadguard_agent_previous.py
+roadguard_global.ipynb
+.vscode/
