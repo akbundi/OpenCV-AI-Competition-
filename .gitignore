@@ -25,3 +25,9 @@ models/roadguard_yolov8n.onnx
 roadguard_agent_previous.py
 roadguard_global.ipynb
 .vscode/
+.env
+.venv/
+runtime/
+__pycache__/
+*.pyc
+*.pem

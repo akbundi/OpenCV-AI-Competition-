@@ -1,0 +1,18 @@
+[Unit]
+Description=RoadGuard AWS cloud video inference
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/roadguard
+EnvironmentFile=/home/ubuntu/roadguard/.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/ubuntu/roadguard/.venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port 8000 --workers 1 --proxy-headers --forwarded-allow-ips=127.0.0.1
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
