@@ -1,1 +1,0 @@
-# OpenCV-AI-Competition-
