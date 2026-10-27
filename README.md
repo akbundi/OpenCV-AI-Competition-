@@ -8,7 +8,7 @@ RoadGuard uses **OpenCV 5 DNN** to run a multi-country **YOLOv8n ONNX** road-dam
 **AWS region:** Asia Pacific (Mumbai), `ap-south-1`  
 **Submission branch:** `roadguard-competition-final`  
 **Demo video (five minutes or less):** Add the public/unlisted video URL here before submitting.  
-**Judge access:** find this demo access code in the attched ppt for the demo evaluation
+**Judge access:** find this demo access code in the section called project details under **"Try it out" links** in the project submission. 
 
 
 
