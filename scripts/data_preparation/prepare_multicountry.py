@@ -15,7 +15,7 @@ import xml.etree.ElementTree as ET
 
 from PIL import Image
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[2]
 RAW_DIR = ROOT / "RDD2022"
 OUTPUT_DIR = ROOT / "data" / "roadguard_global"
 
