@@ -75,3 +75,42 @@ def test_existing_cloud_report_and_review(monkeypatch):
     rr=cli.get(f'/api/runs/{run}',headers=headers).json()
     assert rr['decisions']['4']['decision']=='confirmed'
     assert len(rr['review_history'])==1
+
+class FakePaginator:
+    def __init__(self, store): self.store = store
+    def paginate(self, **kw):
+        prefixes = sorted({key.split('/')[1] for key in self.store if key.startswith('reports/') and len(key.split('/')) > 2})
+        return [{'CommonPrefixes': [{'Prefix': f'reports/{run_id}/'} for run_id in prefixes]}]
+
+
+def test_inspection_history_and_access(monkeypatch):
+    fake = FakeS3()
+    fake.get_paginator = lambda operation: FakePaginator(fake.objects)
+    monkeypatch.setattr(backend, 's3', fake)
+    headers = {'X-Roadguard-Code': 'unit-test-secret'}
+    for rid, ts, n in [('roadguard-run-001', '2026-10-26T22:30:00+00:00', 6),
+                       ('20261027T004335Z-e290f3d', '2026-10-27T00:50:00+00:00', 2)]:
+        queue = [{'event_id': i+1} for i in range(n)]
+        fake.objects[f'reports/{rid}/review_summary.json'] = json.dumps({
+            'candidate_events': n, 'review_queue': queue, 'generated_at_utc': ts,
+            'status_counts': {'candidate_for_human_review': n}
+        }).encode()
+        fake.objects[f'incoming/{rid}/inspection_trace.json'] = json.dumps({
+            'source_filename': 'road_test.mp4', 'events': []
+        }).encode()
+    fake.objects['reviews/roadguard-run-001/decisions.json'] = json.dumps({
+        'decisions': {'1': {'decision': 'confirmed'}, '3': {'decision': 'rejected'}}
+    }).encode()
+    api = TestClient(backend.app)
+    assert api.get('/api/access').status_code == 401
+    assert api.get('/api/access', headers=headers).json() == {'authenticated': True}
+    assert api.get('/api/runs').status_code == 401
+    r = api.get('/api/runs', headers=headers)
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert data['count'] == 2
+    assert data['runs'][0]['run_id'] == '20261027T004335Z-e290f3d'
+    old = next(x for x in data['runs'] if x['run_id'] == 'roadguard-run-001')
+    assert old['reviewed_events'] == 2
+    assert old['review_status'] == 'Partially reviewed'
+    assert old['filename'] == 'road_test.mp4'

@@ -94,7 +94,8 @@ def run_info(run_id: str) -> dict:
         "run_id": run_id,
         "stage": stage,
         "error": local.get("error"),
-        "created_at": local.get("created_at"),
+        "created_at": local.get("created_at") or (summary or {}).get("generated_at_utc"),
+        "filename": local.get("filename"),
         "cloud_report_ready": summary is not None,
         "summary": summary,
         "decisions": decisions.get("decisions", {}),
@@ -152,6 +153,8 @@ def publish(run_id: str, video_path: Path, trace_path: Path) -> int:
     for key, path in uploaded.items():
         s3.upload_file(str(path), BUCKET, key, ExtraArgs={"ContentType": "image/jpeg"})
     remote_report["source_video_s3"] = f"s3://{BUCKET}/{video_key}"
+    with lock:
+        remote_report["source_filename"] = (jobs.get(run_id) or {}).get("filename")
     remote_report["s3_bucket"] = BUCKET
     remote_report["s3_prefix"] = prefix
     # Last upload fires the existing S3 ObjectCreated -> Lambda report pipeline.
@@ -198,6 +201,72 @@ def health():
             "configured": bool(DEMO_CODE), "opencv_version": cv2.__version__,
             "agent_present": (ROOT / "roadguard_agent.py").is_file(),
             "global_model_present": (ROOT / "models" / "roadguard_global_yolov8n.onnx").is_file()}
+
+
+@app.get("/api/access")
+def verify_access(x_roadguard_code: str | None = Header(None)):
+    """Let the UI verify a demo access code before uploading or viewing reports."""
+    check_auth(x_roadguard_code)
+    return {"authenticated": True}
+
+
+@app.get("/api/runs")
+def list_completed_runs(x_roadguard_code: str | None = Header(None)):
+    """Read-only, authenticated history of S3 reports and saved human reviews.
+
+    Completed reports only. No raw S3 URLs or video files are publicly listed.
+    Capped to 100 for the hosted judging demo to bound request cost.
+    """
+    check_auth(x_roadguard_code)
+    ids: list[str] = []
+    # The Delimiter avoids enumerating every object in the private bucket.
+    pages = s3.get_paginator("list_objects_v2").paginate(
+        Bucket=BUCKET, Prefix="reports/", Delimiter="/"
+    )
+    for page in pages:
+        for item in page.get("CommonPrefixes", []):
+            parts = item.get("Prefix", "").split("/")
+            if len(parts) >= 2 and RUN_RE.fullmatch(parts[1]):
+                ids.append(parts[1])
+                if len(ids) >= 100:
+                    break
+        if len(ids) >= 100:
+            break
+
+    with lock:
+        local_jobs = {key: dict(value) for key, value in jobs.items()}
+    runs = []
+    for run_id in ids:
+        summary = s3_json(f"reports/{run_id}/review_summary.json")
+        if not isinstance(summary, dict):
+            continue
+        decisions_doc = s3_json(f"reviews/{run_id}/decisions.json") or {}
+        decisions = decisions_doc.get("decisions", {})
+        queue = summary.get("review_queue") or []
+        candidate_ids = {str(item.get("event_id")) for item in queue if item.get("event_id") is not None}
+        reviewed = len(candidate_ids.intersection(decisions))
+        candidates = len(queue)
+        review_status = ("No candidates" if not candidates else
+                         "Reviewed" if reviewed == candidates else
+                         "Partially reviewed" if reviewed else "Awaiting review")
+        local = local_jobs.get(run_id) or {}
+        # Preserve the original filename for new uploads via the private trace;
+        # old runs can still be opened by ID when the filename is unavailable.
+        filename = local.get("filename")
+        if not filename:
+            trace = s3_json(f"incoming/{run_id}/inspection_trace.json") or {}
+            filename = trace.get("source_filename")
+        runs.append({
+            "run_id": run_id,
+            "filename": filename,
+            "created_at": local.get("created_at") or summary.get("generated_at_utc"),
+            "candidate_events": candidates,
+            "reviewed_events": reviewed,
+            "review_status": review_status,
+            "status_counts": summary.get("status_counts", {}),
+        })
+    runs.sort(key=lambda item: item["created_at"] or "", reverse=True)
+    return {"runs": runs, "count": len(runs)}
 
 
 @app.post("/api/runs", status_code=202)

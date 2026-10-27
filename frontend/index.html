@@ -24,7 +24,7 @@
     <div class="brand"><div class="mark">R</div><div><b>RoadGuard</b><div class="sub">Evidence-driven road inspection · Cloud Inspector</div></div></div>
     <div class="headerRight"><span class="pill green"><span class="dot"></span> AWS-hosted inference</span><span class="pill">OpenCV 5 · Global YOLO ONNX</span><span class="pill">Mumbai / ap-south-1</span></div>
   </header>
-  <nav class="nav" aria-label="Dashboard sections"><button data-tab="overview" class="active">Overview & Upload</button><button data-tab="evidence">Inspection evidence</button><button data-tab="innovation">Innovation & Architecture</button><button data-tab="audit">Human review & Audit</button></nav>
+  <nav class="nav" aria-label="Dashboard sections"><button data-tab="overview" class="active">Overview & Upload</button><button data-tab="evidence">Inspection evidence</button><button data-tab="innovation">Innovation & Architecture</button><button data-tab="audit">Human review & Audit</button><button data-tab="inspection-history">Inspection History</button></nav>
   <section id="overview" data-page>
     <div class="hero"><div><div class="eyebrow">FROM VIDEO TO AUDITABLE EVIDENCE</div><h1>Detect potential road damage.<br>Explain the evidence. Keep inspectors in control.</h1><p>Upload a road video. An AWS-hosted CPU runs OpenCV 5 + the global YOLO model, actively reinspects uncertain frames, compares optical flow and saves a traceable case to private S3. Lambda produces the cloud review report.</p></div><div class="stamp"><strong>5</strong><small>Connected AI + cloud stages</small></div></div>
     <div class="grid four" style="margin-top:16px"><div class="card kpi"><span>Frames inspected</span><strong id="k-frames">—</strong><small>Recorded video frames read</small></div><div class="card kpi"><span>AI candidate groups</span><strong id="k-events">—</strong><small>Not yet human-confirmed defects</small></div><div class="card kpi"><span>Additional vision calls</span><strong id="k-extra">—</strong><small>Agent-selected frame reinspection</small></div><div class="card kpi"><span>Review candidates</span><strong id="k-review">—</strong><small>Evidence-backed cases</small></div></div>
@@ -37,6 +37,7 @@
   </section>
   <section id="evidence" data-page hidden>
     <h1 style="margin:0 0 6px">Inspection evidence</h1><p class="muted" style="margin:0 0 16px">Real images, detection classes, model scores and temporal support from the selected cloud inspection. No simulated road-damage confirmations.</p>
+    <div class="card" style="margin-bottom:14px"><h2 class="panel-title">Inspection report · Plain-language summary</h2><div id="inspection-summary"><p class="muted">Complete an inspection or open a saved run to view its readable report.</p></div></div>
     <div class="columns">
       <div class="card"><h2 class="panel-title">Inspection queue</h2><div class="sub" id="queue-caption">No run loaded</div><div class="queue" id="queue-list"><p class="muted">Load a report to view evidence.</p></div></div>
       <div class="grid" style="gap:13px"><div class="card"><div class="stack" style="justify-content:space-between"><h2 class="panel-title" id="event-heading">Select an event</h2><span id="event-status" class="pill gray">No data</span></div><p id="event-explanation" class="muted small">Original and annotated images will appear here after a cloud report loads.</p><div class="images"><figure class="image-wrap" style="margin:0"><img id="original-image" alt="Original road frame" /><figcaption>Original video frame · unmodified</figcaption></figure><figure class="image-wrap" style="margin:0"><img id="annotated-image" alt="RoadGuard model-annotated frame" /><figcaption>YOLO detection class, bounding box & model score</figcaption></figure></div><div class="metrics-row"><div class="tile"><small>Model confidence</small><strong id="metric-conf">—</strong></div><div class="tile"><small>Nearby-frame support</small><strong id="metric-support">—</strong></div><div class="tile"><small>Grouped observations</small><strong id="metric-group">—</strong></div></div><div class="notice">Model confidence is a detection score, not the probability that a physical defect is truly present. Multiple observations can refer to the same region.</div></div>
@@ -57,6 +58,12 @@
     <div class="grid two" style="margin-top:16px"><div class="card"><h3 class="panel-title">Measured validation (held-out multicountry images)</h3><div class="grid two"><div class="kpi"><span>mAP@50</span><strong>0.509</strong></div><div class="kpi"><span>mAP@50–95</span><strong>0.252</strong></div></div><p class="sub">Evaluated on 3,833 held-out images. These scores do not measure UK dashcam video performance or prove real-world defect accuracy.</p></div><div class="card"><h3 class="panel-title">Responsible engineering boundaries</h3><p>RoadGuard does not infer GPS location, measure crack depth, calculate repair costs or claim infrastructure safety. Temporal groups are image-space associations, not verified distinct physical defects. A camera artifact can remain undetected.</p><p class="sub">Cloud video inference is on EC2, not inside the S3-triggered Lambda function. A hosted demo is not automatically a horizontally scalable production service.</p></div></div>
   </section>
   <section id="audit" data-page hidden><h1 style="margin:0 0 6px">Human review & audit trail</h1><p class="muted">Inspectors review the model evidence and decide whether each candidate is accepted, rejected or needs further inspection. Decisions are stored in S3, not just in the browser.</p><div class="grid two"><div class="card"><h2 class="panel-title">Selected inspection candidate</h2><p class="muted" id="review-target">Select an event in Inspection evidence.</p><label for="review-note" class="label">Review note (optional)</label><textarea id="review-note" class="input" rows="4" placeholder="Evidence supporting the decision, uncertainty, or requested next inspection..."></textarea><div class="stack" style="margin-top:12px"><button class="btn" data-decision="confirmed">Confirm damage candidate</button><button class="btn secondary" data-decision="rejected">Reject candidate</button><button class="btn ghost" data-decision="needs_more_evidence">Needs further inspection</button></div><p id="review-feedback" class="feedback"></p><div class="notice">This action records a human conclusion about the visible evidence. It does not automatically schedule road repair or verify physical crack dimensions.</div></div><div class="card"><h2 class="panel-title">Persistent cloud review history</h2><div id="history"><p class="muted">No decisions recorded for this run.</p></div><hr class="hr" /><p class="sub">Stored as <span class="mono">reviews/&lt;run-id&gt;/decisions.json</span> in a private S3 bucket. Record includes event ID, decision, reviewer label and UTC timestamp.</p></div></div></section>
+  <section id="inspection-history" data-page hidden>
+    <div class="stack" style="justify-content:space-between;gap:12px"><div><h1 style="margin:0 0 6px">Inspection History</h1><p class="muted">Previously completed cloud inspections and human-review progress. Select a run to reopen its images and readable evidence report.</p></div><button id="refresh-history" class="btn secondary">Refresh saved inspections</button></div>
+    <p id="history-error" class="feedback"></p>
+    <div class="grid" id="past-runs"><div class="card muted">Enter the inspector access code to view saved runs.</div></div>
+    <div class="notice">Only completed S3 cloud reports are listed here. Processing runs remain visible under Overview & Upload. Run history does not establish that a candidate is a confirmed road defect.</div>
+  </section>
   <footer class="footer">RoadGuard · OpenCV 5 · Global ONNX · AWS EC2 / S3 / Lambda · All findings are AI-generated inspection candidates until human verified. Source video and evidence remain private in S3.</footer>
 </main>
 <script>
@@ -70,12 +77,25 @@ const apiHeaders=()=>({'X-Roadguard-Code':state.code});
 const statusLabel={candidate_for_human_review:'Evidence-backed candidate',uncertain_more_evidence_needed:'More evidence needed',possible_camera_artifact_review:'Possible camera artifact'};
 const stageText={upload_received:'Video received by AWS',running_opencv5_yolo:'Running OpenCV 5 + global ONNX agent on EC2',uploading_evidence_to_s3:'Publishing original and annotated evidence to private S3',awaiting_lambda_report:'Inspection trace uploaded; waiting for S3-triggered Lambda',cloud_report_ready:'Cloud report available in S3',failed:'Inspection failed',interrupted:'Processing was interrupted by a server restart'};
 function notify(text,error=false){$('upload-message').textContent=text;$('upload-message').style.color=error?'#9A3137':'#0F6B5C'}
-function selectTab(tab){document.querySelectorAll('[data-page]').forEach(s=>s.hidden=s.id!==tab);document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));}
+function selectTab(tab){document.querySelectorAll('[data-page]').forEach(s=>s.hidden=s.id!==tab);document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));if(tab==='inspection-history')refreshInspectionHistory();}
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>selectTab(b.dataset.tab)));
 $('access').value=state.code; $('access-status').textContent=state.code?'Code saved for this tab':'Not unlocked';
-$('save-access').onclick=()=>{state.code=$('access').value.trim();storeDemoCode(state.code);$('access-status').textContent=state.code?'Code saved for this tab':'Not unlocked';};
+$('save-access').onclick=async()=>{
+  const submitted=$('access').value.trim();
+  if(!submitted){$('access-status').textContent='Enter your access code';return;}
+  const previous=state.code;
+  state.code=submitted;
+  try{
+    await request('/api/access');
+    storeDemoCode(submitted);
+    $('access-status').textContent='Inspector access verified';
+  }catch(e){
+    state.code=previous;
+    $('access-status').textContent='Access not verified: '+e.message;
+  }
+};
 async function request(path,options={}){const headers={...apiHeaders(),...(options.headers||{})};const r=await fetch(path,{...options,headers});let data;try{data=await r.json()}catch{data={detail:'Unexpected response'}}if(!r.ok)throw Error(typeof data.detail==='string'?data.detail:'HTTP '+r.status);return data;}
-async function loadRun(id){if(!/^[A-Za-z0-9_-]{1,80}$/.test(id))throw Error('Invalid run ID');state.runId=id;$('existing-run').value=id;await refreshRun();if(state.run?.cloud_report_ready){selectTab('evidence');}}
+async function loadRun(id){if(!/^[A-Za-z0-9_-]{1,80}$/.test(id))throw Error('Invalid run ID');state.runId=id;state.run=null;state.report=null;state.trace=null;state.selected=null;$('existing-run').value=id;await refreshRun();if(state.run?.cloud_report_ready){selectTab('evidence');}}
 $('load-run').onclick=async()=>{try{await loadRun($('existing-run').value.trim())}catch(e){notify(e.message,true)}};
 let localVideoUrl=null;$('video-file').onchange=e=>{const f=e.target.files[0];if(localVideoUrl)URL.revokeObjectURL(localVideoUrl);if(f){localVideoUrl=URL.createObjectURL(f);$('video-preview').src=localVideoUrl;$('video-preview').hidden=false;}};
 $('start-inspection').onclick=async()=>{const f=$('video-file').files[0];if(!state.code){notify('Enter and save a demo access code first.',true);return;}if(!f){notify('Select a video file first.',true);return;}if(f.size>80*1024*1024){notify('Video must be at most 80 MB.',true);return;}
@@ -86,20 +106,69 @@ function renderStatus(){const s=state.run;if(!s)return;const stages=['upload_rec
 $('pipeline-status').innerHTML=stages.map((step,i)=>`<div class="statusLine"><span class="statusCircle ${current>i?'ok':current===i?'current':''}">${current>i?'✓':i+1}</span><div><strong>${esc(stageText[step])}</strong></div></div>`).join('')+(s.stage==='failed'||s.stage==='interrupted'?`<div class="alert error">${esc(s.error||s.stage)}</div>`:'');}
 function reportEvents(){return state.report?.review_queue||[]}
 function rawEvent(id){return (state.trace?.events||[]).find(x=>Number(x.event_id)===Number(id))||null}
-function renderReport(){const r=state.report;if(!r)return;$('k-frames').textContent=r.frames_read??'—';$('k-events').textContent=r.candidate_events??reportEvents().length;$('k-extra').textContent=r.additional_vision_inferences??state.trace?.additional_vision_inferences??'—';$('k-review').textContent=r.status_counts?.candidate_for_human_review??'—';$('queue-caption').textContent=`${reportEvents().length} AI candidates · Run ${state.runId}`;
+function englishLabel(value){return String(value||'Unknown').replaceAll('_',' ').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
+function renderInspectionSummary(){
+  const r=state.report; if(!r)return;
+  const count=Number(r.candidate_events??reportEvents().length);
+  const reviewed=reportEvents().filter(e=>state.run?.decisions?.[String(e.event_id)]).length;
+  const classText=Object.entries(r.class_counts||{}).map(([name,n])=>`${Number(n)} ${englishLabel(name)}`).join(', ');
+  const description=count===0
+    ?'No road-damage candidates were recorded in the frames examined. This does not prove the road is defect-free.'
+    :`RoadGuard identified ${count} candidate observation group${count===1?'':'s'} requiring inspection. These are AI suggestions, not verified physical defects.`;
+  $('inspection-summary').innerHTML=`<p>${esc(description)}</p><div class="metrics-row"><div class="tile"><small>Video frames read</small><strong>${esc(r.frames_read??'—')}</strong></div><div class="tile"><small>Initially scanned frames</small><strong>${esc(r.frames_scanned??'—')}</strong></div><div class="tile"><small>Human-reviewed candidates</small><strong>${reviewed} / ${count}</strong></div></div>${classText?`<p class="small"><strong>Candidate types:</strong> ${esc(classText)}</p>`:''}<p class="small muted">Open each event to view original/annotated images, evidence from neighbouring frames, and the reviewer decision. Model confidence scores are not probabilities of physical damage.</p>`;
+}
+function humanAgentReport(raw,e){
+  if(!raw){return '<p class="muted">Detailed agent trace is not available for this run. The cloud report and images above remain available.</p>';}
+  const steps=Array.isArray(raw.decisions)?raw.decisions:[];
+  const results=Array.isArray(raw.tool_results)?raw.tool_results:[];
+  const support=Number(raw.temporal_overlap_support??e.temporal_overlap_support??0);
+  const checked=Number(raw.frames_successfully_reinspected??results.filter(r=>r.readable).length);
+  const motion=Number(raw.possible_camera_fixed_signal_count??0);
+  const group=raw.association?.observations_count??'unknown';
+  const status=raw.status||e.status;
+  const meaning=status==='possible_camera_artifact_review'
+    ?'The motion heuristic flagged possible camera-fixed artifacts. Check the unmodified frame and consider additional road footage before accepting the detection.'
+    :status==='candidate_for_human_review'
+    ?'Neighbouring-frame evidence supported the candidate sufficiently to place it in the human-review queue. It has not been independently confirmed.'
+    :'The neighbouring-frame evidence was insufficient for a confident inspection suggestion. Further footage or physical inspection may be needed.';
+  const stepsHtml=steps.map((step,i)=>{
+    const frames=Array.isArray(step.requested_frames)?step.requested_frames:[];
+    const matched=results.filter(r=>frames.some(f=>Number(f)===Number(r.frame))&&r.matched).length;
+    return `<div class="event"><strong>Check ${i+1}: ${esc(step.reason||'Inspect additional frames')}</strong><p class="small" style="margin:4px 0">RoadGuard inspected frames ${esc(frames.join(', ')||'none available')} using its OpenCV vision tool. ${matched} of ${frames.length} requested frames had a matching candidate observation.</p></div>`;
+  }).join('');
+  const technical=`<details style="margin-top:15px"><summary>Technical agent trace (raw JSON, optional)</summary><pre class="code">${esc(JSON.stringify(raw,null,2))}</pre></details>`;
+  return `<div class="alert"><strong>Agent finding:</strong> ${esc(meaning)}</div><p class="small">The detector grouped <strong>${esc(group)}</strong> observation(s) of this candidate. Of <strong>${checked}</strong> readable neighbouring frames re-inspected, <strong>${support}</strong> matched the candidate; <strong>${motion}</strong> possible camera-fixed artifact signal(s) were flagged. These are heuristic checks, not a certainty or severity rating.</p>${steps.length?`<h3 class="panel-title">Why the agent inspected more frames</h3><div class="timeline">${stepsHtml}</div>`:'<p class="small muted">No targeted reinspection steps were recorded for this event.</p>'}<p class="small"><strong>Next action:</strong> Compare the original and annotated evidence above, then select Confirm, Reject, or Needs further inspection in the Human review tab.</p>${technical}`;
+}
+function renderReport(){const r=state.report;if(!r)return;$('k-frames').textContent=r.frames_read??'—';$('k-events').textContent=r.candidate_events??reportEvents().length;$('k-extra').textContent=r.additional_vision_inferences??state.trace?.additional_vision_inferences??'—';$('k-review').textContent=r.status_counts?.candidate_for_human_review??'—';$('queue-caption').textContent=`${reportEvents().length} AI candidates · Run ${state.runId}`;renderInspectionSummary();
 if(!state.selected || !reportEvents().some(x=>Number(x.event_id)===Number(state.selected)))state.selected=reportEvents()[0]?.event_id??null;
 $('queue-list').innerHTML=reportEvents().map(e=>`<button class="queue-item ${Number(e.event_id)===Number(state.selected)?'active':''}" data-event="${Number(e.event_id)}"><div class="topline"><strong>Event ${esc(e.event_id)} · ${esc((e.class_name||'Damage candidate').replaceAll('_',' '))}</strong></div><div class="sub" style="margin-top:5px">Frame ${esc(e.source_frame)} · Score ${Number(e.confidence||0).toFixed(3)} · Support ${esc(e.temporal_overlap_support??0)}</div><span class="pill ${e.status==='candidate_for_human_review'?'green':'amber'}" style="margin-top:8px">${esc(statusLabel[e.status]||e.status||'Review')}</span></button>`).join('')||'<p class="muted">No candidate detections recorded in this video. This does not prove the road is defect-free.</p>';
 document.querySelectorAll('[data-event]').forEach(el=>el.onclick=()=>{state.selected=Number(el.dataset.event);renderReport()});renderEvent();renderHistory();}
 function revokeImages(){for(const url of state.imageUrls)URL.revokeObjectURL(url);state.imageUrls=[];}
 async function fetchImage(target,id,kind){try{const res=await fetch(`/api/runs/${encodeURIComponent(state.runId)}/evidence/${Number(id)}/${kind}`,{headers:apiHeaders()});if(!res.ok)throw Error('Image unavailable');const url=URL.createObjectURL(await res.blob());state.imageUrls.push(url);if(Number(state.selected)===Number(id))$(target).src=url;}catch(e){$(target).removeAttribute('src');$(target).alt='Evidence unavailable: '+e.message;}}
-function renderEvent(){const e=reportEvents().find(x=>Number(x.event_id)===Number(state.selected));if(!e){$('event-heading').textContent='No events';$('event-status').textContent='No AI detection';$('agent-trace').textContent='No agent event exists in this inspection.';return;}
+function renderEvent(){const e=reportEvents().find(x=>Number(x.event_id)===Number(state.selected));if(!e){$('event-heading').textContent='No events';$('event-status').textContent='No AI detection';$('agent-trace').textContent='No agent event exists in this inspection.';$('review-target').textContent='No candidate events in this run';$('review-feedback').textContent='Nothing to review';$('event-explanation').textContent='No candidate events were recorded; this does not certify road safety.';$('original-image').removeAttribute('src');$('annotated-image').removeAttribute('src');return;}
 const raw=rawEvent(e.event_id);const assoc=raw?.association||{};$('event-heading').textContent=`Event ${e.event_id} · ${(e.class_name||'Road damage').replaceAll('_',' ')}`;$('event-status').textContent=statusLabel[e.status]||e.status;$('event-status').className='pill '+(e.status==='candidate_for_human_review'?'green':'amber');$('event-explanation').textContent=`Potential ${String(e.class_name||'road damage').replaceAll('_',' ').toLowerCase()} flagged by the global YOLO model in frame ${e.source_frame}. Compare the source image and model annotation, then examine the agent's reinspection evidence.`;
 $('metric-conf').textContent=`${(Number(e.confidence||0)*100).toFixed(1)}%`;$('metric-support').textContent=String(e.temporal_overlap_support??raw?.temporal_overlap_support??'—');$('metric-group').textContent=String(e.observations_grouped??assoc.observations_count??'—');
 revokeImages();$('original-image').removeAttribute('src');$('annotated-image').removeAttribute('src');fetchImage('original-image',e.event_id,'original');fetchImage('annotated-image',e.event_id,'annotated');
-let steps=raw?.decisions||[];let results=raw?.tool_results||[];$('agent-trace').innerHTML=steps.length?`<div class="timeline">${steps.map((s,i)=>{const frames=(s.requested_frames||[]).map(Number);const matched=results.filter(t=>frames.includes(t.frame)&&t.matched).length;return `<div class="event"><strong>${esc(s.reason||'Inspect additional frames')}</strong><div class="sub">Tool: ${esc(s.tool||'OpenCV frame inspector')}</div><div class="tool-result">Requested frames: ${esc(frames.join(', ')||'none')} · Matched: ${matched}/${frames.length}</div></div>`}).join('')}</div><div class="metrics-row"><div class="tile"><small>Vision reinspection results</small><strong>${results.length}</strong></div><div class="tile"><small>Candidate-motion flags</small><strong>${raw?.possible_camera_fixed_signal_count??0}</strong></div><div class="tile"><small>Detection group</small><strong>${assoc.observations_count??'—'}</strong></div></div><details style="margin-top:15px"><summary>Full raw agent evidence (JSON)</summary><pre class="code">${esc(JSON.stringify(raw,null,2))}</pre></details>`:'<p class="muted">This cloud report contains summary evidence but no detailed agent tool trace for this event.</p>';
+$('agent-trace').innerHTML=humanAgentReport(raw,e);
 $('review-target').textContent=`Event ${e.event_id} · ${(e.class_name||'').replaceAll('_',' ')} · Frame ${e.source_frame} · Candidate score ${(Number(e.confidence||0)*100).toFixed(1)}%`;
 $('review-feedback').textContent=state.run?.decisions?.[String(e.event_id)]?`Stored decision: ${state.run.decisions[String(e.event_id)].decision}`:'Pending human review';}
 function renderHistory(){const h=state.run?.review_history||[];$('history').innerHTML=h.length?[...h].reverse().map(e=>`<div class="statusLine"><div><strong>Event ${esc(e.event_id)} · ${esc(e.decision.replaceAll('_',' '))}</strong><div class="sub">${esc(e.timestamp_utc)} · ${esc(e.reviewer)}</div><p class="small">${esc(e.note||'No note')}</p></div></div>`).join(''):'<p class="muted">No decisions recorded for this run.</p>';}
+async function refreshInspectionHistory(){
+  const target=$('past-runs');
+  $('history-error').textContent='';
+  if(!state.code){target.innerHTML='<div class="card muted">Enter the inspector access code on Overview & Upload first.</div>';return;}
+  target.innerHTML='<div class="card muted">Loading saved inspections from private S3…</div>';
+  try{
+    const result=await request('/api/runs');
+    if(!result.runs.length){target.innerHTML='<div class="card muted">No completed cloud reports found yet.</div>';return;}
+    target.innerHTML=result.runs.map(run=>`<div class="card"><div class="stack" style="justify-content:space-between"><div><strong>${esc(run.filename||run.run_id)}</strong><div class="sub mono">${esc(run.run_id)}</div><div class="sub">${esc(run.created_at||'Time unavailable')} · ${Number(run.candidate_events)} candidate(s) · ${Number(run.reviewed_events)} human-reviewed</div><span class="pill ${run.review_status==='Reviewed'?'green':'gray'}" style="margin-top:9px">${esc(run.review_status)}</span></div><button class="btn secondary" data-open-history="${esc(run.run_id)}">Open inspection report</button></div></div>`).join('');
+    document.querySelectorAll('[data-open-history]').forEach(button=>button.addEventListener('click',async()=>{
+      button.disabled=true;
+      try{await loadRun(button.dataset.openHistory);}catch(e){$('history-error').textContent='Unable to load inspection: '+e.message;}finally{button.disabled=false;}
+    }));
+  }catch(e){target.innerHTML='<div class="card muted">Unable to load completed inspections.</div>';$('history-error').textContent=e.message;}
+}
+$('refresh-history').onclick=refreshInspectionHistory;
 document.querySelectorAll('[data-decision]').forEach(el=>el.onclick=async()=>{if(!state.runId||!state.selected){$('review-feedback').textContent='Select a cloud inspection event first.';return}const note=$('review-note').value.trim();el.disabled=true;try{await request(`/api/runs/${encodeURIComponent(state.runId)}/review`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event_id:Number(state.selected),decision:el.dataset.decision,note})});$('review-feedback').textContent='Decision saved to private S3.';await refreshRun()}catch(e){$('review-feedback').textContent='Could not save decision: '+e.message}finally{el.disabled=false}});
 </script>
 </body></html>
